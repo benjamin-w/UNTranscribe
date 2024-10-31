@@ -17,7 +17,13 @@ st.title("Transcribe UN Speeches")
 
 col1, col2 = st.columns(2, gap = "medium")
 
-url = st.text_input("Geben Sie eine URL ein", "")
+with col1: 
+    url = st.text_input("Geben Sie eine URL ein", "")
+    
+with col2:
+    language = st.selectbox("Wählen Sie eine Zielsprache aus:",
+        options= {"Deutsch": "de"}
+        )
     
 if url != "":
     if st.button("Herunterladen und transkribieren"):
@@ -33,7 +39,7 @@ if url != "":
             
         downloaded_file_path = os.path.join(os.getcwd(), downloaded_file)
             
-        st.write(f"Started transcribing {file_title_clean}")
+        st.write(f"Started transcribing *{yt.title}*")
             
         result = model.transcribe(downloaded_file_path, language = "en")
             
