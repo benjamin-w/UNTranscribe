@@ -1,0 +1,4 @@
+/venv
+/venv2
+*.mp3
+/.mypy_cache
