@@ -2,18 +2,55 @@ import streamlit as st
 
 import whisper
 
-from pytubefix import YouTube
-from pytubefix.cli import on_progress
+import yt_dlp as yt
+import subprocess
 
 import os 
 import re
 
+# global vars
+user_agent_ID = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:130.0) Gecko/20100101 Firefox/130.0"
+language_options = {
+    "Englisch": "en",
+    "Deutsch": "de"
+}
+model = whisper.load_model("small")
+
+
 def remove_special_characters(text):
     return re.sub(r'[^A-Za-z0-9]', '', text)
 
-model = whisper.load_model("tiny")
+def get_video_title(url):
+    ydl_opts = {
+        'quiet': True,  # Suppresses download output
+        'extract_flat': True , # Extracts metadata only,
+        'http_headers': {
+            'User-Agent': user_agent_ID  # Sets custom user-agent
+        },
+    }
+    
+    with yt.YoutubeDL(ydl_opts) as ydl:
+        info = ydl.extract_info(url, download=False)
+        return info.get('title', 'Title not found')
 
-st.title("Transcribe UN Speeches")
+
+def download_audio_with_user_agent(url, output_path, filename, user_agent):
+    ydl_opts = {
+        'format': 'bestaudio/best',  # Ensures audio-only download
+        'outtmpl': f'{output_path}/{filename}',
+        'postprocessors': [{
+            'key': 'FFmpegExtractAudio',  # Extracts audio using FFmpeg
+            'preferredcodec': 'mp3',      # Optional: converts audio to mp3
+            'preferredquality': '192',    # Sets quality to 192 kbps
+        }],
+        'http_headers': {
+            'User-Agent': user_agent_ID  # Sets custom user-agent
+        }
+    }
+    with yt.YoutubeDL(ydl_opts) as ydl:
+        ydl.download([url])
+
+st.title("Transkriptionsservice @ AA")
 
 col1, col2 = st.columns(2, gap = "medium")
 
@@ -21,31 +58,35 @@ with col1:
     url = st.text_input("Geben Sie eine URL ein", "")
     
 with col2:
-    language = st.selectbox("Wählen Sie eine Zielsprache aus:",
-        options= {"Deutsch": "de"}
+    selected_language  = st.selectbox("Wählen Sie eine Zielsprache aus:",
+        options= language_options
         )
     
 if url != "":
     if st.button("Herunterladen und transkribieren"):
-            
-        yt = YouTube(url, on_progress_callback = on_progress)    
-        ys = yt.streams.get_audio_only()
-        ys.download(mp3=True)
-        
-        st.write("Downloading <p> <b>", url, "</b> </p>", unsafe_allow_html=True)
 
-        file_title_clean = remove_special_characters(yt.title)
-        downloaded_file = f"{file_title_clean}.mp3"
+        # get title
+        video_title = get_video_title(url)
+
+        file_name = remove_special_characters(video_title)
+        output_dir = os.getcwd()
+        # download audiostream
+        st.write("Downloading <p> <b>", url, "</b> </p>", video_title, "</b> </p>", unsafe_allow_html=True)
             
-        downloaded_file_path = os.path.join(os.getcwd(), downloaded_file)
+        download_audio_with_user_agent(url, output_dir, file_name, user_agent_ID)
+        
             
-        st.write(f"Started transcribing *{yt.title}*")
+        st.write(f"Transkribiere...")
+        path_to_file = os.path.join(output_dir, file_name+".mp3")
+
+        target_lang = language_options[selected_language]
+        result = model.transcribe(path_to_file, language = target_lang)
             
-        result = model.transcribe(downloaded_file_path, language = "en")
+        st.write("Transkript:")
+
+        st.write(result["text"])
             
-        st.write("Done")
             
-            
-        with open(f"{yt.title}.txt", "w") as file:
+        with open(f"{file_name}.txt", "w") as file:
             file.write(result["text"])
                 

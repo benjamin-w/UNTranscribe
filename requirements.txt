@@ -52,13 +52,16 @@ scipy==1.13.0
 shapely==2.0.4
 six==1.16.0
 stack-data==0.6.3
+streamlit==1.39.0
 tornado==6.4
 tqdm==4.66.4
 traitlets==5.14.3
 typing_extensions==4.12.2
 tzdata==2024.1
 urllib3==2.2.2
+openai-whisper==20240930
 wcwidth==0.2.13
 wrapt==1.16.0
 xarray==2024.6.0
 yarl==1.9.4
+yt-dlp==2024.10.7
