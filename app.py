@@ -30,6 +30,7 @@ language_options = {
     "Transkribieren & Deutsch übersetzen": "de"
 }
 
+
 model = whisper.load_model("small")
 
 def get_user_agent_ID():
@@ -117,7 +118,9 @@ if url != "":
             result = model.transcribe(path_to_file, language = target_lang)    
 
         st.write(result["text"])
-            
+        
+        os.remove(f"{output_dir}/{file_name}")
+                   
         with open(f"{file_name}.txt", "w") as file:
             file.write(result["text"])
                 
