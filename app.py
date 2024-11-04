@@ -14,8 +14,7 @@ language_options = {
     "Englisch": "en",
     "Deutsch": "de"
 }
-model = whisper.load_model("small")
-
+model = whisper.load_model("turbo")
 
 def remove_special_characters(text):
     return re.sub(r'[^A-Za-z0-9]', '', text)
@@ -85,7 +84,9 @@ if url != "":
         st.write("Transkript:")
 
         st.write(result["text"])
-            
+        
+        os.remove(f"{output_dir}/{file_name}")
+        
             
         with open(f"{file_name}.txt", "w") as file:
             file.write(result["text"])
